@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome!</title>
+    <link rel="icon" href="./pages/images/Undertale-icon.png" type="image/x-icon">
+    <style>
+        /* Importar la fuente Pixelify Sans */
+        @font-face {
+            font-family: 'Pixelify Sans';
+            src: url('./pages/fonts/PixelifySans-VariableFont_wght.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        body {
+            font-family: 'Pixelify Sans', cursive, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #fff;
+            background-color: #000000;
+            margin: 0;
+            /* Aumenta el padding para dar espacio al contenido escalado y evitar scroll */
+            padding: 50px; /* Puedes ajustar este valor si ves scrollbars */
+            box-sizing: border-box;
+            overflow: hidden; /* Oculta el overflow si aparece al escalar */
+
+            /* ¡AQUÍ ESTÁ EL CAMBIO PRINCIPAL PARA EL ZOOM! */
+            transform: scale(1.25); /* Escala todo el contenido del body un 125% */
+            transform-origin: center center; /* Asegura que el escalado sea desde el centro */
+            transition: transform 0.3s ease-out; /* Transición suave si se cambia dinámicamente */
+        }
+
+        /* Resto de tu CSS existente... (sin cambios aquí) */
+
+        .login-container {
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            box-sizing: border-box;
+            /* Eliminamos el scale(0.95) inicial y el hover scale(1) del login-container */
+            /* para que el zoom del body sea el dominante. Si quieres ese efecto, podemos combinarlo */
+            /* transform: scale(0.95); */
+            /* transition: transform 0.3s ease-in-out; */
+            border: 10px solid white; 
+        }
+
+
+        h2 {
+            margin-bottom: 30px;
+            margin-top: -5px;
+            color: #ffffff;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            font-size: 3em;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #ddd;
+        }
+
+        .input-group input {
+            width: calc(100% - 20px);
+            padding: 12px 10px;
+            border: none;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 16px;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            font-family: 'Pixelify Sans', cursive, sans-serif; 
+        }
+
+        .input-group input:focus {
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 0 3px #FFD700;
+        }
+
+        button {
+            background-color: #000000;
+            font-family: 'Pixelify Sans', cursive, sans-serif;
+            color: white;
+            padding: 15px 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            font-weight: bold;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            width: 100%;
+            box-sizing: border-box;
+            margin-top: 10px;
+            border: 5px solid white; 
+        }
+
+        button:hover {
+            background-color: #c3c540;
+            transform: translateY(-3px);
+        }
+
+        #message {
+            margin-top: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #FFD700;
+            min-height: 25px;
+            font-family: 'Pixelify Sans', cursive, sans-serif; 
+        }
+
+        #skipLoginButton, #changePasswordButton {
+            display: none;
+            margin-top: 20px;
+        }
+
+        #skipLoginButton {
+            background-color: #000000;
+            border: 5px solid white; /* Asegurarse de que los botones también tienen el borde */
+        }
+
+        #skipLoginButton:hover {
+            background-color: #4a915c;
+        }
+
+        #changePasswordButton {
+            background-color: #000000;
+            border: 5px solid white; /* Asegurarse de que los botones también tienen el borde */
+        }
+
+        #changePasswordButton:hover {
+            background-color: #aa1d1d;
+        }
+    </style>
+</head>
+<body>
+    <audio id="background-music" loop autoplay>
+        <source src="./pages/audio/Start Menu.mp3" type="audio/mpeg">
+    </audio>
+
+    <div class="login-container">
+        <h2>Bienvenido!</h2>
+        <div class="input-group">
+            <label for="username">Usuario :</label>
+            <input type="text" id="username" name="username" required>
+        </div>
+        <div class="input-group">
+            <label for="password">Contraseña :</label>
+            <input type="password" id="password" name="password" required>
+        </div>
+        <button onclick="login()">Iniciar Sesión</button>
+        <p id="message"></p>
+        <button id="changePasswordButton" onclick="redirectToChangePassword()">Cambiar Contraseña</button>
+        <button id="skipLoginButton" onclick="skipLogin()">Entrar sin usuario ni contraseña</button>
+    </div>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+
+    <script>
+        (function(){
+            emailjs.init("qQHCYJL8PB-mcY-n0");
+        })();
+    </script>
+    
+    <script>
+        // Todo el JavaScript aquí permanece igual, solo se añade la lógica de audio
+        let loginAttempts = parseInt(sessionStorage.getItem('loginAttempts')) || 0;
+        let changePasswordAttempts = parseInt(sessionStorage.getItem('changePasswordAttempts')) || 0;
+
+        const correctUsername = "usuario";
+        const correctPassword = "password";
+
+        document.addEventListener('DOMContentLoaded', (event) => {
+            const changePasswordBtn = document.getElementById("changePasswordButton");
+            const skipLoginBtn = document.getElementById("skipLoginButton");
+            const backgroundMusic = document.getElementById("background-music"); // Obtener el elemento de audio
+
+            if (loginAttempts >= 5) {
+                changePasswordBtn.style.display = 'block';
+            }
+            if (loginAttempts >= 8) {
+                skipLoginBtn.style.display = 'block';
+            }
+            displayLoginMessage();
+
+            // Intenta reproducir la música al cargar (puede ser bloqueado por el navegador)
+            backgroundMusic.play().catch(e => {
+                console.log("La reproducción automática de audio fue bloqueada:", e);
+                // Si es bloqueada, intenta reproducirla al primer clic del usuario en cualquier parte del body
+                document.body.addEventListener('click', () => {
+                    backgroundMusic.play().catch(e => console.log("Error al intentar reproducir con clic:", e));
+                }, { once: true }); // { once: true } asegura que el listener se ejecute solo una vez
+            });
+        });
+
+        function login() {
+            const usernameInput = document.getElementById("username").value;
+            const passwordInput = document.getElementById("password").value;
+            const messageElement = document.getElementById("message");
+            const skipLoginBtn = document.getElementById("skipLoginButton");
+            const changePasswordBtn = document.getElementById("changePasswordButton");
+
+            if (usernameInput === correctUsername && passwordInput === correctPassword) {
+                loginAttempts++;
+                sessionStorage.setItem('loginAttempts', loginAttempts);
+                displayLoginMessage();
+                messageElement.style.color = '#4CAF50';
+                messageElement.innerHTML = `¡Bienvenido, ${usernameInput}!`;
+                document.querySelector('.login-container').innerHTML = `<h2>¡Acceso Concedido!</h2><p style="color:#4CAF50; font-size:1.2em;">Has ingresado correctamente.</p><button onclick="resetLogin()">Volver a intentar</button>`;
+                sessionStorage.removeItem('loginAttempts');
+                sessionStorage.removeItem('changePasswordAttempts');
+            } else {
+                loginAttempts++;
+                sessionStorage.setItem('loginAttempts', loginAttempts);
+                displayLoginMessage();
+                messageElement.style.color = '#FFD700';
+
+                if (loginAttempts >= 5) {
+                    changePasswordBtn.style.display = 'block';
+                }
+                if (loginAttempts >= 10) {
+                    skipLoginBtn.style.display = 'block';
+                }
+            }
+        }
+
+        function displayLoginMessage() {
+
+            const messageElement = document.getElementById("message");
+            const skipLoginBtn = document.getElementById("skipLoginButton");
+            const changePasswordBtn = document.getElementById("changePasswordButton");
+
+            const changePasswordAttempts = parseInt(sessionStorage.getItem('changePasswordAttempts')) || 0;
+
+            // ===== SEGUNDA VEZ EN LA PÁGINA DE CAMBIAR CONTRASEÑA =====
+            if (changePasswordAttempts >= 2) {
+                messageElement.textContent =
+                    "No puedo creer que caiste 2 veces en la misma mierda... okei, si me diste pena, maravilla referencia. Toma, skipea el login ya fue.";
+
+                skipLoginBtn.style.display = "block"; // mostrar botón skip login
+
+                // ocultamos el botón de cambiar contraseña, ya no tiene sentido
+                changePasswordBtn.style.display = "none";
+
+                return;
+            }
+
+            // ===== PRIMERA VEZ =====
+            if (changePasswordAttempts === 1) {
+                messageElement.textContent =
+                    "BAHAHA troleador cara nomás, a chuparla. Ahora sí te paso el botón real JAJAJA.";
+
+                // Cambiar texto del botón
+                changePasswordBtn.textContent = "Cambiar contraseña REAL";
+                changePasswordBtn.style.display = "block";
+
+                return;
+            }
+
+            // ===== MENSAJES NORMALES =====
+            if (loginAttempts === 1) {
+                messageElement.textContent = "¡Inicio de sesion incorrecto!";
+            } else if (loginAttempts > 1 && loginAttempts <= 4) {
+                messageElement.textContent = `Llevas ${loginAttempts} intentos. ¡Casi lo tienes!`;
+            } else if (loginAttempts === 5) {
+                messageElement.textContent =
+                    `Mmm, me parece que tienes un poco de retraso mental, toma, cambia la contraseña ya que no te acuerdas ni de limpiarte el culo.`;
+                changePasswordBtn.style.display = 'block';
+            } else if (loginAttempts > 10 && loginAttempts <= 15) {
+                messageElement.textContent = `¡${loginAttempts} intentos! ¿Seguro que es esa la contraseña?`;
+            } else if (loginAttempts > 15 && loginAttempts <= 19) {
+                messageElement.textContent = `¡${loginAttempts} intentos! De cagado no cambiaste la contraseña.`;
+            } else if (loginAttempts >= 20) {
+                messageElement.textContent =
+                    `¡${loginAttempts} intentos! Esto ya es un desafío. Parece que necesitas ayuda...`;
+            }
+        }
+
+
+        function redirectToChangePassword() {
+            sessionStorage.setItem('visitedChangePassword', 'yes');
+            sessionStorage.setItem('visitedChangePasswordReal', 'yes');
+            sessionStorage.setItem('changePasswordAttempts', changePasswordAttempts + 1);
+            sessionStorage.setItem('loginAttempts', loginAttempts);
+            window.location.href = 'pages/change_password_prank.html';
+        }
+
+          function skipLogin() {
+
+            emailjs.send("service_n7hdppq", "template_t2mu3no", {
+                fecha: new Date().toLocaleString(),
+                ip: "No disponible desde frontend",
+                accion: "Entró sin usuario ni contraseña"
+            }).then(
+                function() {
+                    console.log("Correo enviado");
+                },
+                function(error) {
+                    console.log("Error:", error);
+                }
+            );
+
+            const messageElement = document.getElementById("message");
+            messageElement.style.color = '#00BFFF';
+            messageElement.innerHTML = "¡Acceso concedido sin credenciales! Pero no te acostumbres...";
+            document.querySelector('.login-container').innerHTML = `
+                <h2>¡Acceso Concedido!</h2>
+                <p style="color:#00BFFF; font-size:1.2em;">
+                    Has ingresado sin usuario ni contraseña.
+                </p>
+                <button onclick="resetLogin()">Volver a intentar</button>
+            `;
+            sessionStorage.removeItem('loginAttempts');
+            sessionStorage.removeItem('changePasswordAttempts');
+        }
+
+        function resetLogin() {
+            sessionStorage.removeItem('loginAttempts');
+            sessionStorage.removeItem('changePasswordAttempts');
+            location.reload();
+        }
+    </script>
+</body>
+</html>
